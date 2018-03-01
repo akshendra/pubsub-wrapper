@@ -9,9 +9,9 @@
 
 const ps = require('@google-cloud/pubsub');
 
-const Service = require('service-base');
-const { validate, joi } = require('validator');
-const misc = require('misc');
+const Service = require('@akshendra/service');
+const { validate, joi } = require('@akshendra/validator');
+const misc = require('@akshendra/misc');
 
 
 /**
