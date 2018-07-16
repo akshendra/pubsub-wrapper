@@ -1,38 +1,48 @@
-/**
- * Google PubSub Service
- *
- * @Author: Akshendra Pratap Singh
- * @Date: 2017-07-10 13:13:33
- * @Last Modified by: Akshendra Pratap Singh
- * @Last Modified time: 2017-08-31 16:34:37
- */
 
 const ps = require('@google-cloud/pubsub');
-
-const Service = require('@akshendra/service');
-const { validate, joi } = require('@akshendra/validator');
-const misc = require('@akshendra/misc');
+const safeJSON = require('safely-parse-json');
 
 
 /**
  * @class PubSub
  */
-class PubSub extends Service {
+class PubSub {
   /**
    * @param {string} name - unique name to this service
    * @param {EventEmitter} emitter
    * @param {Object} config - configuration object of service
    */
   constructor(name, emitter, config) {
-    super(name, emitter, config);
+    this.name = name;
+    this.emitter = emitter;
 
-    this.config = validate(config, joi.object().keys({
-      projectId: joi.string().required(),
-      keyFilename: joi.string(),
+    this.config = Object.assign({
       ack_deadline_seconds: 300,
-    }));
+    }, config);
     this.client = null;
     this.topics = {};
+  }
+
+  log(message, data) {
+    this.emitter.emit('log', {
+      service: this.name,
+      message,
+      data,
+    });
+  }
+
+  success(message, data) {
+    this.emitter.emit('success', {
+      service: this.name, message, data,
+    });
+  }
+
+  error(err, data) {
+    this.emitter.emit('error', {
+      service: this.name,
+      data,
+      err,
+    });
   }
 
   /**
@@ -41,14 +51,11 @@ class PubSub extends Service {
    * @return {Promise<this>}
    */
   init() {
-    this.log.info('Using config', this.config);
-    this.emitInfo('connecting', 'On google cloud', {
-      projectId: this.config.projectId,
-    });
+    this.log('Using config', this.config);
     const client = ps(this.config);
     return client.getTopics().then(() => {
       this.client = client;
-      this.emitSuccess(`Successfully connected on project ${this.config.projectId}`);
+      this.success(`Successfully connected on project ${this.config.projectId}`);
       return this;
     });
   }
@@ -62,15 +69,13 @@ class PubSub extends Service {
    */
   createTopic(name) {
     const topic = this.client.topic(name);
-    this.log.info('Creating topic', {
+    this.log('Creating topic', {
       topic: name,
     });
     return topic.exists().then(result => {
       const exists = result[0];
       if (exists === true) {
-        const message = 'Already exists';
-        this.log.info(message);
-        this.emitSuccess(`Topic "${name}" already exists`);
+        this.success(`Topic "${name}" already exists`);
         this.topics[name] = topic;
         return true;
       }
@@ -78,8 +83,7 @@ class PubSub extends Service {
       return topic.create().then((res) => {
         this.topics[name] = res[0]; // eslint-disable-line
         const message = `Topic "${name}" created`;
-        this.log.info(message);
-        this.emitSuccess(message);
+        this.success(message);
         return true;
       });
     });
@@ -96,8 +100,7 @@ class PubSub extends Service {
     const topic = this.topics[name];
     return topic.delete().then(() => {
       const message = `Deleted topic ${topic.name}`;
-      this.log.info(message);
-      this.emitInfo('topic', message, {
+      this.log(message, {
         topicName: topic.name,
       });
       delete this.topics[name];
@@ -125,14 +128,12 @@ class PubSub extends Service {
    * @return {Promise<true>}
    */
   subscribe(topicName, subName, cb, options = {}) {
-    options = validate(options, joi.object().keys({
-      ackDeadlineSeconds: joi.number().integer().min(0),
-      autoAck: joi.bool().default(false),
-      interval: joi.number().integer().min(0).default(1),
-      maxInProgress: joi.number().integer().min(0).default(1),
-      pushEndPoint: joi.string(),
-      timeout: joi.number().integer().min(0),
-    }));
+    Object.assign(options, {
+      ackDeadlineSeconds: this.config.ack_deadline_seconds,
+      autoAck: false,
+      interval: 1,
+      maxInProgress: 1,
+    });
 
     const opts = {
       flowControl: {
@@ -145,9 +146,8 @@ class PubSub extends Service {
 
     const topic = this.topics[topicName];
     let subscription = topic.subscription(subName, opts);
-    let message = '';
 
-    this.log.info('Subscribing', {
+    this.log('Subscribing', {
       topicName,
       subName,
       options,
@@ -157,39 +157,33 @@ class PubSub extends Service {
     return subscription.exists().then(result => {
       const exists = result[0];
       if (exists === true) {
-        message = `Existing subscription on ${topic.name}, ${subscription.name}`;
-        this.log.info('Subscription already exists', {
+        this.success('Subscription already exists', {
           topicName: topic.name,
           subName: subscription.name,
         });
-        this.emitSuccess(`Subscription "${subName}" on "${topicName}" already exists`);
         return subscription;
       }
 
       return subscription.create().then(res => {
-        message = `Created subscription on ${topic.name}, ${subscription.name}`;
-        this.log.info('Created subscription', {
+        this.success('Created subscription', {
           topicName: topic.name,
           subName: subscription.name,
         });
         subscription = res[0]; // eslint-disable-line
-        this.emitSuccess(`Subscription "${subName}" on topic "${topicName}" created`);
         return subscription;
       });
     }).then(sub => {
-      this.log.info(message);
-
       sub.on('message', (msg) => {
         const newmsg = {
           nack: msg.nack ? msg.nack.bind(msg) : () => {},
           skip: msg.skip ? msg.skip.bind(msg) : () => {},
           ack: msg.ack.bind(msg),
-          data: misc.safeJSON(msg.data),
+          data: safeJSON(msg.data),
         };
         return cb(newmsg);
       });
       sub.on('error', err => {
-        this.emitError('subscription', err, {
+        this.error(err, {
           topicName: topic.name,
           subName: sub.name,
         });
@@ -213,10 +207,8 @@ class PubSub extends Service {
     // Remove the listener from subscription
     subscription.removeListener('message', cb);
     return subscription.delete().then(() => {
-      this.log.info(`Deleted subscription on ${topic.name}`, subscription.name);
       const message = `Removed listner from ${topic.name}, ${subscription.name}`;
-      this.log.info(message);
-      this.emitInfo('subscription', message, {
+      this.info(message, {
         topicName: topic.name,
         subName: subscription.name,
       });
@@ -237,11 +229,6 @@ class PubSub extends Service {
    * @return {Promise}
    */
   publish(topicName, content, meta = {}, handle = true) {
-    meta = validate(meta, joi.object().keys({
-      replyTo: joi.string(),
-      correlationId: joi.string(),
-    }));
-
     const topic = this.topics[topicName];
     const p = topic.publish(JSON.stringify({
       content,
@@ -252,11 +239,9 @@ class PubSub extends Service {
     }
 
     return p.then(() => {
-      this.log.info('Successfully published on', topicName);
     })
       .catch((err) => {
-        this.log.error(err);
-        this.emitError('publishing', err, {
+        this.error(err, {
           topicName,
           message: content,
           options: meta,
@@ -288,11 +273,9 @@ class PubSub extends Service {
     }
 
     return p.then(() => {
-      this.log.info('Successfully published on', topicName);
     })
       .catch(err => {
-        this.log.error(err);
-        this.emitError('sending', err, {
+        this.error(err, {
           topicName,
           message: content,
           options: meta,
@@ -317,11 +300,9 @@ class PubSub extends Service {
     }
 
     return p.then(() => {
-      this.log.info('Successfully published on', topicName);
     })
       .catch(err => {
-        this.log.error(err);
-        this.emitError('no cover', err, {
+        this.error('no cover', err, {
           topicName,
           message: data,
         });
