@@ -51,7 +51,11 @@ class PubSub {
    * @return {Promise<this>}
    */
   init() {
-    this.log('Using config', this.config);
+    this.log('Using config', {
+      projectId: this.config.projectId,
+      email: this.config.credentials ? this.config.credentials.email : 'n/a',
+      method: this.config.credentials ? 'PrivateKey' : 'KeyFile',
+    });
     const client = ps(this.config);
     return client.getTopics().then(() => {
       this.client = client;

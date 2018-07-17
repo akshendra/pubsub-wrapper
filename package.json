@@ -1,6 +1,6 @@
 {
   "name": "@akshendra/pubsub",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A wrapper around gcloud pubsub",
   "main": "index.js",
   "scripts": {
