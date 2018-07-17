@@ -73,9 +73,7 @@ class PubSub {
    */
   createTopic(name) {
     const topic = this.client.topic(name);
-    this.log('Creating topic', {
-      topic: name,
-    });
+    this.log(`Creating topic ${name}`);
     return topic.exists().then(result => {
       const exists = result[0];
       if (exists === true) {
@@ -104,9 +102,7 @@ class PubSub {
     const topic = this.topics[name];
     return topic.delete().then(() => {
       const message = `Deleted topic ${topic.name}`;
-      this.log(message, {
-        topicName: topic.name,
-      });
+      this.log(message);
       delete this.topics[name];
       return true;
     });
