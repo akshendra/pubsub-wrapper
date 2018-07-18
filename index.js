@@ -53,7 +53,7 @@ class PubSub {
   init() {
     this.log('Using config', {
       projectId: this.config.projectId,
-      email: this.config.credentials ? this.config.credentials.email : 'n/a',
+      email: this.config.credentials ? this.config.credentials.client_email : 'n/a',
       method: this.config.credentials ? 'PrivateKey' : 'KeyFile',
     });
     const client = ps(this.config);
