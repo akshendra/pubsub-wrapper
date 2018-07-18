@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/akshendra/pubsub-wrapper#readme",
   "dependencies": {
-    "@google-cloud/pubsub": "^0.19.0",
+    "@google-cloud/pubsub": "0.19.0",
     "safely-parse-json": "0.1.0"
   }
 }

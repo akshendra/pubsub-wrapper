@@ -178,7 +178,7 @@ class PubSub {
           nack: msg.nack ? msg.nack.bind(msg) : () => {},
           skip: msg.skip ? msg.skip.bind(msg) : () => {},
           ack: msg.ack.bind(msg),
-          data: safeJSON(msg.data),
+          data: safeJSON(msg.data.toString()),
         };
         return cb(newmsg);
       });
@@ -230,10 +230,10 @@ class PubSub {
    */
   publish(topicName, content, meta = {}, handle = true) {
     const topic = this.topics[topicName];
-    const p = topic.publish(JSON.stringify({
+    const p = topic.publisher().publish(Buffer.from(JSON.stringify({
       content,
       meta,
-    }));
+    })));
     if (handle === false) {
       return p;
     }
