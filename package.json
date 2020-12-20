@@ -1,6 +1,6 @@
 {
   "name": "@akshendra/pubsub",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "A wrapper around gcloud pubsub",
   "main": "index.js",
   "scripts": {
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/akshendra/pubsub-wrapper#readme",
   "dependencies": {
-    "@google-cloud/pubsub": "0.19.0",
+    "@google-cloud/pubsub": "2.7.0",
     "safely-parse-json": "0.1.0"
   }
 }
