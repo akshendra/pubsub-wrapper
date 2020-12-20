@@ -1,5 +1,5 @@
 
-const ps = require('@google-cloud/pubsub');
+const { PubSub: PS } = require('@google-cloud/pubsub');
 const safeJSON = require('safely-parse-json');
 
 
@@ -56,7 +56,7 @@ class PubSub {
       email: this.config.credentials ? this.config.credentials.client_email : 'n/a',
       method: this.config.credentials ? 'PrivateKey' : 'KeyFile',
     });
-    const client = ps(this.config);
+    const client = new PS(this.config);
     return client.getTopics().then(() => {
       this.client = client;
       this.success(`Successfully connected on project ${this.config.projectId}`);
