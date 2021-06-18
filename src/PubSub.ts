@@ -15,7 +15,7 @@ interface PubSubConfig {
 /**
  * @class PubSub
  */
-class PubSub {
+export = class PubSub {
   /**
    * @param {string} name - unique name to this service
    * @param {EventEmitter} emitter
@@ -348,5 +348,3 @@ class PubSub {
       });
   }
 }
-
-module.exports = PubSub;
