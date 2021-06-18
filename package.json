@@ -1,10 +1,11 @@
 {
   "name": "@akshendra/pubsub",
-  "version": "0.1.2",
-  "description": "A wrapper around gcloud pubsub",
-  "main": "index.js",
+  "version": "0.0.2",
+  "description": "A simple wrapper around gcloud pubsub",
+  "main": "dist/Pubsub.js",
+  "types": "dist/Pubsub.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "npx tsc"
   },
   "repository": {
     "type": "git",
@@ -22,7 +23,7 @@
   },
   "homepage": "https://github.com/akshendra/pubsub-wrapper#readme",
   "dependencies": {
-    "@google-cloud/pubsub": "0.19.0",
+    "@google-cloud/pubsub": "2.14.0",
     "safely-parse-json": "0.1.0"
   }
 }
