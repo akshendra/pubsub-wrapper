@@ -133,15 +133,15 @@ class PubSub {
    * @param {string} subName
    * @param {Function} cb - will get <message> with the following props
    *  id, ackId, data <pusblished>, attributes, timestamp, ack(), skip()
-   * @param {Object} options - tuning params
-   * @param {number} options.ackDeadlineSeconds - number of seconds
+   * @param {Object} _options - tuning params
+   * @param {number} _options.ackDeadlineSeconds - number of seconds
    *   after which message will marked nack
-   * @param {boolean} [options.autoAck=false]
-   * @param {string} [options.encoding='utf-8']
-   * @param {number} [options.interval=1] - interval between taking next message
-   * @param {number} [options.maxInProgress=1] - number of message at once
-   * @param {string} [options.pushEndPoint]
-   * @param {number} [options.timeout] - http call
+   * @param {boolean} [_options.autoAck=false]
+   * @param {string} [_options.encoding='utf-8']
+   * @param {number} [_options.interval=1] - interval between taking next message
+   * @param {number} [_options.maxInProgress=1] - number of message at once
+   * @param {string} [_options.pushEndPoint]
+   * @param {number} [_options.timeout] - http call
    *
    * @return {Promise<true>}
    */

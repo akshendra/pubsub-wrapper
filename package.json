@@ -1,6 +1,6 @@
 {
   "name": "@akshendra/pubsub",
-  "version": "0.0.2",
+  "version": "0.1.5",
   "description": "A simple wrapper around gcloud pubsub",
   "main": "dist/Pubsub.js",
   "types": "dist/Pubsub.d.ts",
